@@ -1,0 +1,378 @@
+```html
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora Retrô 80s com Porcentagem Inteligente</title>
+    <!-- Tailwind CSS for styling and grid layout -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for retro digital LCD style -->
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&display=swap" rel="stylesheet">
+    <style>
+        .lcd-font {
+            font-family: 'VT323', monospace;
+        }
+        
+        /* Realistic mechanical key press effect */
+        .retro-btn {
+            background: linear-gradient(to bottom, #f3f4f6, #d1d5db);
+            border-top: 2px solid #ffffff;
+            border-left: 2px solid #ffffff;
+            border-right: 2px solid #9ca3af;
+            border-bottom: 3px solid #6b7280;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            transition: all 0.05s ease;
+        }
+        .retro-btn:active, .retro-btn.pressed {
+            background: linear-gradient(to bottom, #d1d5db, #e5e7eb);
+            border-top: 3px solid #6b7280;
+            border-left: 3px solid #6b7280;
+            border-right: 1px solid #ffffff;
+            border-bottom: 1px solid #ffffff;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            transform: translateY(2px);
+        }
+
+        /* Operator buttons styling */
+        .retro-op-btn {
+            background: linear-gradient(to bottom, #fbbf24, #d97706);
+            color: #ffffff;
+            border-top: 2px solid #fde68a;
+            border-left: 2px solid #fde68a;
+            border-right: 2px solid #b45309;
+            border-bottom: 3px solid #92400e;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+        .retro-op-btn:active, .retro-op-btn.pressed {
+            background: linear-gradient(to bottom, #d97706, #b45309);
+            border-top: 3px solid #92400e;
+            border-left: 3px solid #92400e;
+            border-right: 1px solid #fde68a;
+            border-bottom: 1px solid #fde68a;
+            transform: translateY(2px);
+        }
+
+        /* Special buttons (C, DEL) */
+        .retro-special-btn {
+            background: linear-gradient(to bottom, #f87171, #dc2626);
+            color: #ffffff;
+            border-top: 2px solid #fca5a5;
+            border-left: 2px solid #fca5a5;
+            border-right: 2px solid #b91c1c;
+            border-bottom: 3px solid #991b1b;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+        .retro-special-btn:active, .retro-special-btn.pressed {
+            background: linear-gradient(to bottom, #dc2626, #b91c1c);
+            border-top: 3px solid #991b1b;
+            border-left: 3px solid #991b1b;
+            border-right: 1px solid #fca5a5;
+            border-bottom: 1px solid #fca5a5;
+            transform: translateY(2px);
+        }
+
+        /* LCD Screen Glow Effect */
+        .lcd-screen {
+            background-color: #1a261c;
+            color: #4ade80;
+            text-shadow: 0 0 8px rgba(74, 222, 128, 0.7);
+            box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.8), inset 0 -1px 2px rgba(255, 255, 255, 0.15);
+        }
+
+        /* Cabinet texture styling */
+        .calculator-body {
+            background: linear-gradient(135deg, #f3f4f6 0%, #d1d5db 100%);
+            box-shadow: 0 25px 35px -10px rgba(0, 0, 0, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.9);
+        }
+    </style>
+</head>
+<body class="bg-stone-900 min-h-screen flex items-center justify-center p-4">
+
+    <!-- Calculator Container -->
+    <div class="calculator-body w-full max-w-xs sm:max-w-sm rounded-3xl p-6 sm:p-8 border-4 border-stone-400 select-none">
+        
+        <!-- Brand Header, Audio Toggle & Solar Panel -->
+        <div class="flex justify-between items-center mb-4 px-1">
+            <div>
+                <h1 class="text-xs sm:text-sm font-bold tracking-widest text-stone-700 uppercase font-sans">RETRO-TRONIC</h1>
+                <p class="text-[9px] text-stone-500 font-semibold">MODEL 88-PRO</p>
+            </div>
+            
+            <div class="flex items-center gap-2">
+                <!-- Sound Toggle Button -->
+                <button id="soundToggle" onclick="toggleSound()" class="bg-stone-300 hover:bg-stone-400 border border-stone-500 text-stone-700 text-[10px] px-2 py-1 rounded font-mono shadow-inner transition active:scale-95" title="Ativar/Desativar Som Mecânico">
+                    🎵 SOM: <span id="soundStatus">OFF</span>
+                </button>
+                
+                <!-- Fake Solar Panel -->
+                <div class="w-12 sm:w-16 h-5 bg-stone-900 rounded border border-stone-600 flex flex-col justify-between p-1 opacity-80 shadow-inner">
+                    <div class="h-[1px] bg-stone-700 w-full"></div>
+                    <div class="h-[1px] bg-stone-700 w-full"></div>
+                    <div class="h-[1px] bg-stone-700 w-full"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- LCD Screen Area -->
+        <div class="lcd-screen rounded-lg p-3 mb-6 border-2 border-stone-700 flex flex-col justify-end items-end relative overflow-hidden h-24">
+            <!-- Scanline overlay effect -->
+            <div class="absolute inset-0 pointer-events-none opacity-15 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.3)_50%)] bg-[length:100%_4px]"></div>
+            
+            <!-- History / Operation Expression -->
+            <div id="history" class="lcd-font text-lg sm:text-xl text-[#22c55e] h-6 overflow-hidden text-right w-full tracking-wider opacity-90"></div>
+            
+            <!-- Main Display Output -->
+            <div id="display" class="lcd-font text-4xl sm:text-5xl tracking-widest truncate w-full text-right">0</div>
+        </div>
+
+        <!-- Keypad Grid -->
+        <div class="grid grid-cols-4 gap-3">
+            <!-- Row 1 -->
+            <button onclick="pressButton(() => clearCalculator(), this)" class="retro-special-btn rounded-xl py-3 font-bold text-sm sm:text-base">C</button>
+            <button onclick="pressButton(() => deleteDigit(), this)" class="retro-btn text-stone-700 rounded-xl py-3 font-bold text-sm sm:text-base">DEL</button>
+            <button onclick="pressButton(() => appendPercentage(), this)" class="retro-op-btn rounded-xl py-3 font-bold text-base sm:text-lg">%</button>
+            <button onclick="pressButton(() => appendOperator('/'), this)" class="retro-op-btn rounded-xl py-3 font-bold text-base sm:text-lg">÷</button>
+
+            <!-- Row 2 -->
+            <button onclick="pressButton(() => appendNumber('7'), this)" class="retro-btn text-stone-800 rounded-xl py-3.5 font-bold text-lg sm:text-xl">7</button>
+            <button onclick="pressButton(() => appendNumber('8'), this)" class="retro-btn text-stone-800 rounded-xl py-3.5 font-bold text-lg sm:text-xl">8</button>
+            <button onclick="pressButton(() => appendNumber('9'), this)" class="retro-btn text-stone-800 rounded-xl py-3.5 font-bold text-lg sm:text-xl">9</button>
+            <button onclick="pressButton(() => appendOperator('*'), this)" class="retro-op-btn rounded-xl py-3.5 font-bold text-base sm:text-lg">×</button>
+
+            <!-- Row 3 -->
+            <button onclick="pressButton(() => appendNumber('4'), this)" class="retro-btn text-stone-800 rounded-xl py-3.5 font-bold text-lg sm:text-xl">4</button>
+            <button onclick="pressButton(() => appendNumber('5'), this)" class="retro-btn text-stone-800 rounded-xl py-3.5 font-bold text-lg sm:text-xl">5</button>
+            <button onclick="pressButton(() => appendNumber('6'), this)" class="retro-btn text-stone-800 rounded-xl py-3.5 font-bold text-lg sm:text-xl">6</button>
+            <button onclick="pressButton(() => appendOperator('-'), this)" class="retro-op-btn rounded-xl py-3.5 font-bold text-base sm:text-lg">-</button>
+
+            <!-- Row 4 -->
+            <button onclick="pressButton(() => appendNumber('1'), this)" class="retro-btn text-stone-800 rounded-xl py-3.5 font-bold text-lg sm:text-xl">1</button>
+            <button onclick="pressButton(() => appendNumber('2'), this)" class="retro-btn text-stone-800 rounded-xl py-3.5 font-bold text-lg sm:text-xl">2</button>
+            <button onclick="pressButton(() => appendNumber('3'), this)" class="retro-btn text-stone-800 rounded-xl py-3.5 font-bold text-lg sm:text-xl">3</button>
+            <button onclick="pressButton(() => appendOperator('+'), this)" class="retro-op-btn rounded-xl py-3.5 font-bold text-base sm:text-lg">+</button>
+
+            <!-- Row 5 -->
+            <button onclick="pressButton(() => appendNumber('0'), this)" class="retro-btn text-stone-800 rounded-xl py-3.5 font-bold text-lg sm:text-xl col-span-2">0</button>
+            <button onclick="pressButton(() => appendDecimal('.'), this)" class="retro-btn text-stone-800 rounded-xl py-3.5 font-bold text-lg sm:text-xl">.</button>
+            <button onclick="pressButton(() => calculateResult(), this)" class="retro-op-btn rounded-xl py-3.5 font-bold text-lg sm:text-xl bg-gradient-to-b from-emerald-600 to-emerald-800 border-t-emerald-400 border-b-emerald-900">=</button>
+        </div>
+
+        <!-- Footer / Watermark -->
+        <div class="text-center mt-5">
+            <span class="text-[10px] text-stone-500 tracking-widest font-mono">RETRO MECHANICAL CALCULATOR</span>
+        </div>
+    </div>
+
+    <!-- JavaScript Application Logic with Web Audio API & Percentage Fix -->
+    <script>
+        let currentInput = '0';
+        let historyExpression = '';
+        let firstOperand = null;
+        let currentOperator = null;
+        let waitingForOperand = false;
+        let soundEnabled = false;
+
+        const displayEl = document.getElementById('display');
+        const historyEl = document.getElementById('history');
+        const soundStatusEl = document.getElementById('soundStatus');
+
+        // Web Audio API for mechanical key click sounds
+        let audioCtx = null;
+        function playClickSound() {
+            if (!soundEnabled) return;
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                const osc = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(120, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(30, audioCtx.currentTime + 0.04);
+                
+                gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.04);
+                
+                osc.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.04);
+            } catch (e) {
+                // Ignore audio restriction errors before interaction
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            soundStatusEl.textContent = soundEnabled ? 'ON' : 'OFF';
+            if (soundEnabled) {
+                playClickSound();
+            }
+        }
+
+        function pressButton(actionCallback, element) {
+            playClickSound();
+            // Visual tactile press feedback simulation
+            element.classList.add('pressed');
+            setTimeout(() => element.classList.remove('pressed'), 100);
+            actionCallback();
+        }
+
+        function updateDisplay() {
+            displayEl.textContent = currentInput;
+            historyEl.textContent = historyExpression;
+        }
+
+        function appendNumber(num) {
+            if (waitingForOperand) {
+                currentInput = num;
+                waitingForOperand = false;
+            } else {
+                currentInput = currentInput === '0' ? num : currentInput + num;
+            }
+            updateDisplay();
+        }
+
+        function appendDecimal(dot) {
+            if (waitingForOperand) {
+                currentInput = '0.';
+                waitingForOperand = false;
+            } else if (!currentInput.includes('.')) {
+                currentInput += dot;
+            }
+            updateDisplay();
+        }
+
+        function appendOperator(op) {
+            const inputValue = parseFloat(currentInput);
+
+            if (firstOperand === null) {
+                firstOperand = inputValue;
+            } else if (currentOperator && !waitingForOperand) {
+                const result = operate(firstOperand, inputValue, currentOperator);
+                firstOperand = result;
+                currentInput = String(result);
+            }
+
+            currentOperator = op;
+            waitingForOperand = true;
+            
+            // Format operator symbol for history view
+            let symbolMap = { '+': '+', '-': '-', '*': '×', '/': '÷' };
+            historyExpression = `${firstOperand} ${symbolMap[op]}`;
+            updateDisplay();
+        }
+
+        function operate(a, b, op) {
+            switch (op) {
+                case '+': return a + b;
+                case '-': return a - b;
+                case '*': return a * b;
+                case '/': return b === 0 ? 'Erro' : a / b;
+                default: return b;
+            }
+        }
+
+        // CORRECTED PERCENTAGE LOGIC: Handles arithmetic context (e.g., 50 + 10% = 55)
+        function appendPercentage() {
+            const currentVal = parseFloat(currentInput);
+            
+            if (firstOperand !== null && currentOperator) {
+                let calculatedPercent;
+                // For addition and subtraction, percentage is relative to the first operand (e.g., 50 + 10% -> 10% of 50 = 5)
+                if (currentOperator === '+' || currentOperator === '-') {
+                    calculatedPercent = (firstOperand * currentVal) / 100;
+                } else {
+                    // For multiplication and division, it's just the standard percentage value
+                    calculatedPercent = currentVal / 100;
+                }
+                
+                currentInput = String(calculatedPercent);
+                historyExpression = `${firstOperand} ${currentOperator === '+' ? '+' : currentOperator === '-' ? '-' : currentOperator === '*' ? '×' : '÷'} ${currentVal}%`;
+                waitingForOperand = false;
+                updateDisplay();
+            } else {
+                // Standalone percentage calculation
+                let result = currentVal / 100;
+                currentInput = String(result);
+                historyExpression = `${currentVal}%`;
+                updateDisplay();
+            }
+        }
+
+        function clearCalculator() {
+            currentInput = '0';
+            historyExpression = '';
+            firstOperand = null;
+            currentOperator = null;
+            waitingForOperand = false;
+            updateDisplay();
+        }
+
+        function deleteDigit() {
+            if (waitingForOperand) return;
+            if (currentInput.length > 1) {
+                currentInput = currentInput.slice(0, -1);
+            } else {
+                currentInput = '0';
+            }
+            updateDisplay();
+        }
+
+        function calculateResult() {
+            const inputValue = parseFloat(currentInput);
+
+            if (currentOperator && firstOperand !== null && !waitingForOperand) {
+                let symbolMap = { '+': '+', '-': '-', '*': '×', '/': '÷' };
+                historyExpression = `${firstOperand} ${symbolMap[currentOperator]} ${inputValue} =`;
+                
+                const result = operate(firstOperand, inputValue, currentOperator);
+                
+                if (result === 'Erro') {
+                    currentInput = 'Erro';
+                } else {
+                    // Round to avoid floating point precision issues
+                    currentInput = String(parseFloat(Number(result).toFixed(8)));
+                }
+
+                firstOperand = null;
+                currentOperator = null;
+                waitingForOperand = true;
+                updateDisplay();
+            }
+        }
+
+        // Keyboard Support for desktop usability
+        window.addEventListener('keydown', (e) => {
+            if (e.key >= '0' && e.key <= '9') {
+                appendNumber(e.key);
+            } else if (e.key === '.') {
+                appendDecimal('.');
+            } else if (e.key === '+') {
+                appendOperator('+');
+            } else if (e.key === '-') {
+                appendOperator('-');
+            } else if (e.key === '*') {
+                appendOperator('*');
+            } else if (e.key === '/') {
+                appendOperator('/');
+            } else if (e.key === '%') {
+                appendPercentage();
+            } else if (e.key === 'Enter' || e.key === '=') {
+                calculateResult();
+            } else if (e.key === 'Backspace') {
+                deleteDigit();
+            } else if (e.key === 'Escape') {
+                clearCalculator();
+            }
+        });
+    </script>
+</body>
+</html>
+```
